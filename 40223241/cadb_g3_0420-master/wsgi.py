@@ -83,92 +83,24 @@ class Hello(object):
     def hello(self, toprint="Hello World!"):
         return toprint
     #@+node:2014fall.20141215194146.1791: *3* index
+    # 以 @ 開頭的 cherrypy.expose 為 decorator, 用來表示隨後的成員方法, 可以直接讓使用者以 URL 連結執行
     @cherrypy.expose
-    def index(self, guess=None):
-        # 將標準答案存入 answer session 對應區
-        theanswer = random.randint(1, 100)
-        thecount = 0
-        # 將答案與計算次數變數存進 session 對應變數
-        cherrypy.session['answer'] = theanswer
-        cherrypy.session['count'] = thecount
-        # 印出讓使用者輸入的超文件表單
+    # index 方法為 CherryPy 各類別成員方法中的內建(default)方法, 當使用者執行時未指定方法, 系統將會優先執行 index 方法
+    # 有 self 的方法為類別中的成員方法, Python 程式透過此一 self 在各成員方法間傳遞物件內容
+    def index(self):
         outstring = '''
-    <!DOCTYPE html> 
-    <html>
-    <head>
-    <meta http-equiv="content-type" content="text/html;charset=utf-8">
-    <!-- 載入 brython.js -->
-    <script type="text/javascript" src="/static/Brython3.1.1-20150328-091302/brython.js"></script>
-    <script src="/static/Cango2D.js" type="text/javascript"></script>
-    <script src="/static/gearUtils-04.js" type="text/javascript"></script>
-    </head>
-    <!-- 啟動 brython() -->
-    <body onload="brython()">
+        <!DOCTYPE html> 
+        <html>
+        <head>
+        <meta http-equiv="content-type" content="text/html;charset=utf-8">
+        </head>
+        <body>
+        <a href="drawspur">齒輪模擬</a><br />
+        <a href="mygeartest2">齒輪嚙合</a><br />
+        </body>
+        </html>
+        '''
         
-    <form method=POST action=doCheck>
-    請輸入您所猜的整數:<input type=text name=guess><br />
-    <input type=submit value=send>
-    </form>
-    <hr>
-    <!-- 以下在網頁內嵌 Brython 程式 -->
-    <script type="text/python">
-    from browser import document, alert
-
-    def echo(ev):
-        alert(document["zone"].value)
-
-    # 將文件中名稱為 mybutton 的物件, 透過 click 事件與 echo 函式 bind 在一起
-    document['mybutton'].bind('click',echo)
-    </script>
-    <input id="zone"><button id="mybutton">click !</button>
-    <hr>
-    <!-- 以下為 canvas 畫圖程式 -->
-    <script type="text/python">
-    # 從 browser 導入 document
-    from browser import document
-    import math
-
-    # 畫布指定在名稱為 plotarea 的 canvas 上
-    # 以下使用中文變數名稱
-    canvas = document["plotarea"]
-    ctx = canvas.getContext("2d")
-
-    # 用紅色畫一條直線
-    ctx.beginPath()
-    ctx.lineWidth = 3
-    ctx.moveTo(0, 0)
-    ctx.lineTo(0, 500)
-    ctx.strokeStyle = "red"
-    ctx.stroke()
-
-    # 用藍色再畫一條直線
-    ctx.beginPath()
-    ctx.lineWidth = 3
-    ctx.moveTo(0, 0)
-    ctx.lineTo(500, 0)
-    ctx.strokeStyle = "blue"
-    ctx.stroke()
-
-    # 用綠色再畫一條直線
-    ctx.beginPath()
-    ctx.lineWidth = 3
-    ctx.moveTo(0, 0)
-    ctx.lineTo(500, 500)
-    ctx.strokeStyle = "green"
-    ctx.stroke()
-
-    # 用黑色畫一個圓
-    ctx.beginPath()
-    ctx.lineWidth = 3
-    ctx.strokeStyle = "black"
-    ctx.arc(250,250,50,0,2*math.pi)
-    ctx.stroke()
-    </script>
-    <canvas id="plotarea" width="800" height="600"></canvas>
-    </body>
-    </html>
-    '''
-
         return outstring
     #@+node:2015.20150330144929.1713: *3* twoDgear
     @cherrypy.expose
@@ -509,7 +441,7 @@ class Hello(object):
     #@+node:amd.20150415215023.1: *3* mygeartest2
     @cherrypy.expose
     # N 為齒數, M 為模數, P 為壓力角
-    def mygeartest2(self, N=20,N1=20, M=5, P=15):
+    def mygeartest3(self, N=20, m=15, p=5,z=15,x=24,c=None,v=None,o=None,l=None):
         outstring = '''
     <!DOCTYPE html> 
     <html>
@@ -522,6 +454,25 @@ class Hello(object):
     </head>
     <!-- 啟動 brython() -->
     <body onload="brython()">
+    <form method=POST action=mygeartest3>
+    第1齒數:<br />
+        <select name="z">
+        '''
+        for j in range(15,81):
+            outstring+=''' <option value="'''+str(j)+'''">'''+str(j)+'''</option>'''
+        outstring+='''
+       </select><br/>
+    第2齒數:<br />
+        <select name="x">
+        '''
+        for j in range(15,81):
+            outstring+=''' <option value="'''+str(j)+'''">'''+str(j)+'''</option>'''
+        outstring+='''
+       </select><br/>
+    壓力角:<input type=text name=p><br />
+    模數:<input type=text name=m><br />
+    <input type=submit value=send>
+    </form>
 
     <!-- 以下為 canvas 畫圖程式 -->
     <script type="text/python">
@@ -541,45 +492,54 @@ class Hello(object):
     # Gear(midx, midy, rp, n=20, pa=20, color="black"):
     # 模數決定齒的尺寸大小, 囓合齒輪組必須有相同的模數與壓力角
     # 壓力角 pa 單位為角度
-    pa = 20
+    pa = '''+str(p)+'''
     # m 為模數
-    m = 20
+    m = '''+str(m)+'''
     # 第1齒輪齒數
-    n_g1 = '''+str(N)+'''
-    # 第2齒輪齒數[
-    n_g2 = '''+str(N1)+'''
-
-
-    # 計算三齒輪的節圓半徑
+    n_g1 = '''+str(z)+'''
+    # 第2齒輪齒數
+    n_g2 = '''+str(x)+'''
+    # 計算兩齒輪的節圓半徑
     rp_g1 = m*n_g1/2
     rp_g2 = m*n_g2/2
+
+    # 繪圖第1齒輪的圓心座標
+    x_g1 = 280
+    y_g1 = 400
+    # 第2齒輪的圓心座標, 假設排列成水平, 表示各齒輪圓心 y 座標相同
+    x_g2 = x_g1
+    y_g2 = y_g1 + rp_g1 + rp_g2
 
     # 將第1齒輪順時鐘轉 90 度
     # 使用 ctx.save() 與 ctx.restore() 以確保各齒輪以相對座標進行旋轉繪圖
     ctx.save()
     # translate to the origin of second gear
-    ctx.translate(1000,1000)
+    ctx.translate(x_g1, y_g1)
     # rotate to engage
     ctx.rotate(pi)
     # put it back
-    ctx.translate(-1000,-1000)
-    spur.Spur(ctx).Gear(1000,1000,rp_g1,n_g1, pa, "blue")
+    ctx.translate(-x_g1, -y_g1)
+    spur.Spur(ctx).Gear(x_g1, y_g1, rp_g1, n_g1, pa, "blue")
     ctx.restore()
 
     # 將第2齒輪逆時鐘轉 90 度之後, 再多轉一齒, 以便與第1齒輪進行囓合
     ctx.save()
     # translate to the origin of second gear
-    ctx.translate(1000,1000+rp_g1+rp_g2)
+    ctx.translate(x_g2, y_g2)
     # rotate to engage
-    ctx.rotate(-pi/n_g2)
+    ctx.rotate(pi/n_g2)
     # put it back
-    ctx.translate(-(1000),-(1000+rp_g1+rp_g2))
-    spur.Spur(ctx).Gear(1000,1000+rp_g1+rp_g2,rp_g2,n_g2, pa, "black")
+    ctx.translate(-x_g2, -y_g2)
+    spur.Spur(ctx).Gear(x_g2, y_g2, rp_g2, n_g2, pa, "black")
     ctx.restore()
 
 
+    ctx.font = "10px Verdana";
+    ctx.fillText("組員40223225 張育軒所繪製",x_g1-60, y_g1-10)
+    # 按照上面三個正齒輪的囓合轉角運算, 隨後的傳動齒輪轉角便可依此類推, 完成6個齒輪的囓合繪圖
+
     </script>
-    <canvas id="plotarea" width="8000" height="8000"></canvas>
+    <canvas id="plotarea" width="5000" height="5000"></canvas>
     </body>
     </html>
     '''
